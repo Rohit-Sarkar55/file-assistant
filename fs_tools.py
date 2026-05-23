@@ -1,4 +1,5 @@
 import os,fitz
+from docx import Document
 
 def read_file(filepath):
     if not os.path.exists(filepath):
@@ -27,10 +28,24 @@ def read_file(filepath):
             "content": content
         }
     
+    elif filepath.endswith(".docx"):
+        content = ""
+        doc = Document(filepath)
+        for paragraph in doc.paragraphs:
+            if paragraph.text.strip():
+                content += paragraph.text + "\n"
+
+        return {
+            "success": True,
+            "filepath": filepath,
+            "extension": ".docx",
+            "content": content
+        }
+    
     else:
         return {"success": False, "error": "File type not supported yet"}
     
 
 if __name__ == "__main__":
-    result = read_file("resumes/test_2.pdf")
+    result = read_file("resumes/test_3.docx")
     print(result)
