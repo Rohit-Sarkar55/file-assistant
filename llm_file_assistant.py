@@ -2,7 +2,7 @@ import os, json
 from dotenv import load_dotenv
 # from openai import OpenAI
 from groq import Groq
-from fs_tools import list_files
+from fs_tools import list_files , read_file
 
 load_dotenv()
 
@@ -30,6 +30,22 @@ tools = [
                     }
                 },
                 "required": ["directory"]
+            }
+        }
+    },{
+        "type": "function",
+        "function": {
+            "name": "read_file",
+            "description": "Read and extract text content from a file. Supports PDF, TXT and DOCX formats.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "filepath": {
+                        "type": "string",
+                        "description": "The full path to the file e.g. resumes/resume_test_1.txt"
+                    }
+                },
+                "required": ["filepath"]
             }
         }
     }
@@ -64,6 +80,8 @@ def run_assistant(user_message):
         if tool_name == "list_files":
             tool_result = list_files(**tool_args)
             # print(tool_result)
+        elif tool_name == "read_file":
+            tool_result = read_file(**tool_args)
         
          # Step 4 - Send tool result back to Groq
         messages.append(response_message)
@@ -89,9 +107,12 @@ def run_assistant(user_message):
         return response_message.content
 
 # ---- TEST ----
-if __name__ == "__main__":
-    run_assistant("What files are in the resumes folder?")
+# if __name__ == "__main__":
+#     run_assistant("What files are in the resumes folder?")
     # run_assistant("How to cook turkey?")
+
+if __name__ == "__main__":
+    run_assistant("Read the file resume_test_1.txt from resumes folder")
 
 
     
