@@ -100,57 +100,64 @@ def run_assistant(user_message):
         {"role": "user", "content": user_message}
     ]
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=messages,
-        tools=tools,
-        tool_choice="auto"
-    )
-
-    response_message = response.choices[0].message
-
-    if response_message.tool_calls:
-        tool_call = response_message.tool_calls[0]
-        tool_name = tool_call.function.name
-        tool_args = json.loads(tool_call.function.arguments)
-
-        print(f"\n[AI is calling tool: {tool_name} with args: {tool_args}]")
-
-    # Step 3 - Call the actual tool
-        if tool_name == "list_files":
-            tool_result = list_files(**tool_args)
-            # print(tool_result)
-        elif tool_name == "read_file":
-            tool_result = read_file(**tool_args)
-        elif tool_name == "write_file":
-            tool_result = write_file(**tool_args)
-        elif tool_name == "search_in_file":
-            tool_result = search_in_file(**tool_args)
-        else:
-            tool_result = {"success": False, "error": f"Unknown tool: {tool_name}"}
-        
-         # Step 4 - Send tool result back to Groq
-        messages.append(response_message)
-        messages.append({
-            "role": "tool",
-            "tool_call_id": tool_call.id,
-            "content": json.dumps(tool_result)
-        })
-
-        # Step 5 - Get final response from Groq
-        final_response = client.chat.completions.create(
+    try:
+        response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=messages,
-            # tools=tools dont need this
+            tools=tools,
+            tool_choice="auto"
         )
 
-        final_message = final_response.choices[0].message.content
-        print(f"\nAssistant: {final_message}")
-        return final_message
-    
-    else:
-        print(f"\nAssistant: {response_message.content}")
-        return response_message.content
+        response_message = response.choices[0].message
+
+        if response_message.tool_calls:
+            tool_call = response_message.tool_calls[0]
+            tool_name = tool_call.function.name
+            tool_args = json.loads(tool_call.function.arguments)
+
+            print(f"\n[AI is calling tool: {tool_name} with args: {tool_args}]")
+
+        # Step 3 - Call the actual tool
+            if tool_name == "list_files":
+                tool_result = list_files(**tool_args)
+                # print(tool_result)
+            elif tool_name == "read_file":
+                tool_result = read_file(**tool_args)
+            elif tool_name == "write_file":
+                tool_result = write_file(**tool_args)
+            elif tool_name == "search_in_file":
+                tool_result = search_in_file(**tool_args)
+            else:
+                tool_result = {"success": False, "error": f"Unknown tool: {tool_name}"}
+            
+            # Step 4 - Send tool result back to Groq
+            messages.append(response_message)
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "content": json.dumps(tool_result)
+            })
+
+            # Step 5 - Get final response from Groq
+            final_response = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=messages,
+                # tools=tools dont need this
+            )
+
+            final_message = final_response.choices[0].message.content
+            print(f"\nAssistant: {final_message}")
+            return final_message
+        
+        else:
+            print(f"\nAssistant: {response_message.content}")
+            return response_message.content
+        
+    except Exception as e:
+        error_message = f"Something went wrong — please try again. ({str(e)[:80]})"
+        print(f"\nAssistant: {error_message}")
+        return error_message
+
 
 # ---- TEST ----
 # if __name__ == "__main__":
