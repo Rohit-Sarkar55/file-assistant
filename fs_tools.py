@@ -118,6 +118,42 @@ def write_file(filepath, content):
     }
 
 
+def search_in_file(filepath, keyword):
+    # Check if file exists
+    if not os.path.exists(filepath):
+        return {"success": False, "error": "File not found"}
+
+    # Read the file content using our existing read_file function
+    result = read_file(filepath)
+
+    if not result["success"]:
+        return {"success": False, "error": result["error"]}
+
+    # Split content into lines
+    lines = result["content"].split("\n")
+    matches = []
+
+    for i, line in enumerate(lines):
+        if keyword.lower() in line.lower():
+            # Get surrounding context (line before and after)
+            context_start = max(0, i - 1)
+            context_end = min(len(lines) - 1, i + 1)
+
+            matches.append({
+                "line_number": i + 1,
+                "line": line,
+                "context": lines[context_start:context_end + 1]
+            })
+
+    return {
+        "success": True,
+        "filepath": filepath,
+        "keyword": keyword,
+        "total_matches": len(matches),
+        "matches": matches
+    }
+
+
 if __name__ == "__main__":
     # result = read_file("resumes/test_3.docx")
     # result = list_files("resumes")
@@ -126,9 +162,12 @@ if __name__ == "__main__":
     # result = list_files("resumes", ".pdf")
     # print(result)
     # Test 1 - write to existing outputs folder
-    result = write_file("outputs/summary_john_doe.txt", "This is a summary of John Doe.")
-    print(result)
+    # result = write_file("outputs/summary_john_doe.txt", "This is a summary of John Doe.")
+    # print(result)
 
-    # Test 2 - write to a folder that doesn't exist yet
-    result = write_file("outputs/new_folder/summary_test.txt", "Testing folder creation.")
+    # # Test 2 - write to a folder that doesn't exist yet
+    # result = write_file("outputs/new_folder/summary_test.txt", "Testing folder creation.")
+    # print(result)
+
+    result = search_in_file("resumes/test_1.txt", "python")
     print(result)
