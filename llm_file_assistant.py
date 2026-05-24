@@ -2,7 +2,7 @@ import os, json
 from dotenv import load_dotenv
 # from openai import OpenAI
 from groq import Groq
-from fs_tools import list_files , read_file , write_file
+from fs_tools import list_files , read_file , write_file , search_in_file
 
 load_dotenv()
 
@@ -68,6 +68,26 @@ tools = [
                 "required": ["filepath", "content"]
             }
         }
+    },{
+        "type": "function",
+        "function": {
+            "name": "search_in_file",
+            "description": "Search for a keyword inside a file. Returns matching lines with surrounding context. Case insensitive.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "filepath": {
+                        "type": "string",
+                        "description": "The full path to the file to search in e.g. resumes/resume_test_1.txt"
+                    },
+                    "keyword": {
+                        "type": "string",
+                        "description": "The keyword to search for inside the file"
+                    }
+                },
+                "required": ["filepath", "keyword"]
+            }
+        }
     }
 ]
 
@@ -104,6 +124,10 @@ def run_assistant(user_message):
             tool_result = read_file(**tool_args)
         elif tool_name == "write_file":
             tool_result = write_file(**tool_args)
+        elif tool_name == "search_in_file":
+            tool_result = search_in_file(**tool_args)
+        else:
+            tool_result = {"success": False, "error": f"Unknown tool: {tool_name}"}
         
          # Step 4 - Send tool result back to Groq
         messages.append(response_message)
@@ -136,8 +160,10 @@ def run_assistant(user_message):
 # if __name__ == "__main__":
 #     run_assistant("Read the file resume_test_1.txt from resumes folder")
 
-if __name__ == "__main__":
-    run_assistant("Create a file called summary.txt in outputs folder with content 'This is a test summary Rohit'")
+# if __name__ == "__main__":
+#     run_assistant("Create a file called summary.txt in outputs folder with content 'This is a test summary Rohit'")
 
 
     
+if __name__ == "__main__":
+    run_assistant("Search for Python in resumes/resume_test_1.txt")
