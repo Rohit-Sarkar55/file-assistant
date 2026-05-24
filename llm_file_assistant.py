@@ -2,7 +2,7 @@ import os, json
 from dotenv import load_dotenv
 # from openai import OpenAI
 from groq import Groq
-from fs_tools import list_files , read_file
+from fs_tools import list_files , read_file , write_file
 
 load_dotenv()
 
@@ -48,6 +48,26 @@ tools = [
                 "required": ["filepath"]
             }
         }
+    },{
+        "type": "function",
+        "function": {
+            "name": "write_file",
+            "description": "Write or append content to a file. Creates the file if it does not exist.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "filepath": {
+                        "type": "string",
+                        "description": "The full path to the file to write to e.g. outputs/summary.txt"
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "The text content to write to the file"
+                    }
+                },
+                "required": ["filepath", "content"]
+            }
+        }
     }
 ]
 
@@ -82,6 +102,8 @@ def run_assistant(user_message):
             # print(tool_result)
         elif tool_name == "read_file":
             tool_result = read_file(**tool_args)
+        elif tool_name == "write_file":
+            tool_result = write_file(**tool_args)
         
          # Step 4 - Send tool result back to Groq
         messages.append(response_message)
@@ -95,7 +117,7 @@ def run_assistant(user_message):
         final_response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=messages,
-            tools=tools
+            # tools=tools dont need this
         )
 
         final_message = final_response.choices[0].message.content
@@ -111,8 +133,11 @@ def run_assistant(user_message):
 #     run_assistant("What files are in the resumes folder?")
     # run_assistant("How to cook turkey?")
 
+# if __name__ == "__main__":
+#     run_assistant("Read the file resume_test_1.txt from resumes folder")
+
 if __name__ == "__main__":
-    run_assistant("Read the file resume_test_1.txt from resumes folder")
+    run_assistant("Create a file called summary.txt in outputs folder with content 'This is a test summary Rohit'")
 
 
     
