@@ -1,0 +1,15 @@
+Name: Sarah Connor
+Email: sarah.connor@email.com
+Phone: 111-222-3333
+
+SKILLS
+Python, R, Machine Learning, TensorFlow, Pandas, NumPy
+
+EXPERIENCE
+Data Scientist at DataCorp (2020-2024)
+- Built machine learning models using TensorFlow
+- Analyzed large datasets using Pandas and NumPy
+- Created data visualizations using Matplotlib
+
+EDUCATION
+M.Sc Data Science, Tech University 2020

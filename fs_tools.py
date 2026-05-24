@@ -155,9 +155,10 @@ def search_in_file(filepath, keyword):
 
 
 if __name__ == "__main__":
-    # result = read_file("resumes/test_3.docx")
-    # result = list_files("resumes")
-    # print(result)
+    # result = read_file("resumes/resume_test_8.docx")
+    result = list_files("resumes")
+    for file in result["files"]:
+        print(file)
 
     # result = list_files("resumes", ".pdf")
     # print(result)
@@ -169,5 +170,5 @@ if __name__ == "__main__":
     # result = write_file("outputs/new_folder/summary_test.txt", "Testing folder creation.")
     # print(result)
 
-    result = search_in_file("resumes/test_1.txt", "python")
-    print(result)
+    # result = search_in_file("resumes/test_1.txt", "python")
+    # print(result)

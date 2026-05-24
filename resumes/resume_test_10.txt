@@ -1,0 +1,15 @@
+Name: Lisa Wong
+Email: lisa.wong@email.com
+Phone: 777-888-9999
+
+SKILLS
+Project Management, Agile, Scrum, JIRA, Microsoft Office
+
+EXPERIENCE
+Project Manager at ConsultCo (2018-2024)
+- Managed cross functional teams of 10+ members
+- Delivered projects on time using Agile methodology
+- Tracked progress using JIRA and Microsoft Office
+
+EDUCATION
+B.Sc Business Administration, State University 2018
