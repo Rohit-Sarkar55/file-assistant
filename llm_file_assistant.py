@@ -2,7 +2,7 @@ import os, json
 from dotenv import load_dotenv
 # from openai import OpenAI
 from groq import Groq
-from fs_tools import list_files , read_file , write_file , search_in_file
+from fs_tools import list_files , read_file , write_file , search_in_file , search_all_files
 
 load_dotenv()
 
@@ -88,6 +88,30 @@ tools = [
                 "required": ["filepath", "keyword"]
             }
         }
+    },{
+        "type": "function",
+        "function": {
+            "name": "search_all_files",
+            "description": "Search for a keyword across all files in a directory. Returns only the filenames where the keyword was found. Use this when searching across multiple files. For searching within a specific file use search_in_file instead.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "directory": {
+                        "type": "string",
+                        "description": "The directory to search in e.g. resumes"
+                    },
+                    "keyword": {
+                        "type": "string",
+                        "description": "The keyword to search for"
+                    },
+                    "extension": {
+                        "type": "string",
+                        "description": "Optional file extension to filter by e.g. .txt .pdf .docx"
+                    }
+                },
+                "required": ["directory", "keyword"]
+            }
+        }
     }
 ]
 
@@ -96,11 +120,24 @@ def run_assistant(user_message):
 
     # Step 1 - Send user message to OpenAI
     messages = [
-        {"role": "system", "content": "You are a file assistant. Only help with file related tasks. If a question is not related to files politely say you can only help with file related tasks. Never try to call tools for non file related questions."},
+        {"role": "system", "content": """You are a file assistant. Only help with file related tasks.
+
+            For searching:
+            - Use search_all_files() when searching across multiple files or a whole directory
+            - Use search_in_file() when searching within a specific single file
+
+            For reading:
+            - Use list_files() first if no specific file is mentioned
+            - Then use read_file() for each file
+
+            Never guess filenames — use list_files() first when needed.
+            
+         If a question is not related to files politely say you can only help with file related tasks."""},
         {"role": "user", "content": user_message}
     ]
 
     try:
+            
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=messages,
@@ -111,48 +148,50 @@ def run_assistant(user_message):
         response_message = response.choices[0].message
 
         if response_message.tool_calls:
-            tool_call = response_message.tool_calls[0]
-            tool_name = tool_call.function.name
-            tool_args = json.loads(tool_call.function.arguments)
-
-            print(f"\n[AI is calling tool: {tool_name} with args: {tool_args}]")
-
-        # Step 3 - Call the actual tool
-            if tool_name == "list_files":
-                tool_result = list_files(**tool_args)
-                # print(tool_result)
-            elif tool_name == "read_file":
-                tool_result = read_file(**tool_args)
-            elif tool_name == "write_file":
-                tool_result = write_file(**tool_args)
-            elif tool_name == "search_in_file":
-                tool_result = search_in_file(**tool_args)
-            else:
-                tool_result = {"success": False, "error": f"Unknown tool: {tool_name}"}
-            
-            # Step 4 - Send tool result back to Groq
             messages.append(response_message)
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "content": json.dumps(tool_result)
-            })
 
-            # Step 5 - Get final response from Groq
+            for tool_call in response_message.tool_calls:
+                tool_name = tool_call.function.name
+                tool_args = json.loads(tool_call.function.arguments)
+
+                print(f"\n[AI is calling tool: {tool_name} with args: {tool_args}]")
+
+                if tool_name == "list_files":
+                    tool_result = list_files(**tool_args)
+                elif tool_name == "read_file":
+                    tool_result = read_file(**tool_args)
+                elif tool_name == "write_file":
+                    tool_result = write_file(**tool_args)
+                elif tool_name == "search_in_file":
+                    tool_result = search_in_file(**tool_args)
+                elif tool_name == "search_all_files":
+                    tool_result = search_all_files(**tool_args)
+                else:
+                    tool_result = {"success": False, "error": f"Unknown tool: {tool_name}"}
+
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": json.dumps(tool_result)
+                })
+
             final_response = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
-                messages=messages,
-                # tools=tools dont need this
+                messages=messages
             )
 
             final_message = final_response.choices[0].message.content
+
+            if final_message is None:
+                final_message = "Done. Task completed successfully."
+
             print(f"\nAssistant: {final_message}")
             return final_message
-        
+
         else:
             print(f"\nAssistant: {response_message.content}")
             return response_message.content
-        
+                
     except Exception as e:
         error_message = f"Something went wrong — please try again. ({str(e)[:80]})"
         print(f"\nAssistant: {error_message}")
@@ -173,4 +212,4 @@ def run_assistant(user_message):
 
     
 if __name__ == "__main__":
-    run_assistant("Search for Python in resumes/resume_test_1.txt")
+    run_assistant("Search for Python in resumes")

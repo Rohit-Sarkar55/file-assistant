@@ -154,11 +154,48 @@ def search_in_file(filepath, keyword):
     }
 
 
+def search_all_files(directory, keyword, extension=None):
+    # First list all files in the directory
+    files_result = list_files(directory, extension)
+
+    if not files_result["success"]:
+        return {"success": False, "error": files_result["error"]}
+
+    matched_files = []
+
+    for file in files_result["files"]:
+        filepath = file["filepath"]
+
+        # Search for keyword in each file
+        result = search_in_file(filepath, keyword)
+
+        if result["success"] and result["total_matches"] > 0:
+            matched_files.append({
+                "filename": file["name"],
+                "filepath": filepath,
+                "total_matches": result["total_matches"]
+            })
+
+    return {
+        "success": True,
+        "directory": directory,
+        "keyword": keyword,
+        "total_files_searched": len(files_result["files"]),
+        "matched_files": matched_files,
+        "total_matched": len(matched_files)
+    }
+
+
 if __name__ == "__main__":
-    # result = read_file("resumes/resume_test_8.docx")
-    result = list_files("resumes")
-    for file in result["files"]:
-        print(file)
+    result = search_all_files("resumes", "python")
+    print(result)
+
+
+# if __name__ == "__main__":
+#     # result = read_file("resumes/resume_test_8.docx")
+#     result = list_files("resumes")
+#     for file in result["files"]:
+#         print(file)
 
     # result = list_files("resumes", ".pdf")
     # print(result)
