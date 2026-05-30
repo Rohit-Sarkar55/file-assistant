@@ -87,6 +87,4 @@ Answer is printed to terminal
 
 
 
-[screen-capture.webm](https://github.com/user-attachments/assets/2aa6c5d7-615c-4338-b4c6-c8b5e2e567d0)
-
 ```
